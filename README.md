@@ -1,0 +1,2 @@
+# serikokur.com
+serikokur.com
