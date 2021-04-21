@@ -1,16 +1,84 @@
-QT -= gui
+QT += gui core xml
 
-CONFIG += c++11 console
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+
+CONFIG += c++17 console
 CONFIG -= app_bundle
+
+CONFIG += no_keywords
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        ../../../Comman/mainapplication.cpp \
+        BaseClass/basewidget.cpp \
+        BaseClass/containerwiget.cpp \
+        BaseClass/databasewidget.cpp \
+        BaseClass/dbclass.cpp \
+        BaseClass/dialog.cpp \
+        BaseClass/itembase.cpp \
         main.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+INCLUDEPATH += C:/boost/boost
+DEPENDPATH += C:/boost/boost
+
+
+message("msvc 2017 x64")
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lbsoncxx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lbsoncxxd
+else:unix: LIBS += -L$$PWD/lib/ -lbsoncxx
+
+INCLUDEPATH += $$PWD/include/bsoncxx/v_noabi
+DEPENDPATH += $$PWD/include/bsoncxx/v_noabi
+
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lmongocxx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lmongocxxd
+else:unix: LIBS += -L$$PWD/lib/ -lmongocxx
+
+INCLUDEPATH += $$PWD/include/mongocxx/v_noabi
+DEPENDPATH += $$PWD/include/mongocxx/v_noabi
+
+
+win32: LIBS += -LC:/Wt_4.3.1_msvc2017_x64/lib/ -lwt
+
+INCLUDEPATH += C:/Wt_4.3.1_msvc2017_x64/include
+DEPENDPATH += C:/Wt_4.3.1_msvc2017_x64/include
+
+win32: LIBS += -LC:/Wt_4.3.1_msvc2017_x64/lib/ -lwthttp
+
+win32: LIBS += -LC:/Wt_4.3.1_msvc2017_x64/lib/ -llibhpdf
+
+
+win32: LIBS += -LC:/SerikBLDCoreRelease/MSVC2017X64/lib/ -lSerikBLDCore
+
+INCLUDEPATH += C:/SerikBLDCoreRelease/MSVC2017X64/include
+DEPENDPATH += C:/SerikBLDCoreRelease/MSVC2017X64/include
+
+INCLUDEPATH += $$PWD/../../../Comman
+DEPENDPATH += $$PWD/../../../Comman
+
+HEADERS += \
+    ../../../Comman/CSSCustom.h \
+    ../../../Comman/bootstrap.h \
+    ../../../Comman/inlinestyle.h \
+    ../../../Comman/mainapplication.h \
+    ../../../Comman/mongoheaders.h \
+    BaseClass/basewidget.h \
+    BaseClass/containerwiget.h \
+    BaseClass/databasewidget.h \
+    BaseClass/dbclass.h \
+    BaseClass/dialog.h \
+    BaseClass/itembase.h \
+    BaseClass/wtheaders.h
