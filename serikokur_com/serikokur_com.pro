@@ -13,14 +13,37 @@ CONFIG += no_keywords
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        ../../../Comman/mainapplication.cpp \
         BaseClass/basewidget.cpp \
         BaseClass/containerwiget.cpp \
         BaseClass/databasewidget.cpp \
         BaseClass/dbclass.cpp \
         BaseClass/dialog.cpp \
         BaseClass/itembase.cpp \
-        main.cpp
+        BaseClass/smsabstrackmanager.cpp \
+        BaseClass/smsitem.cpp \
+        baskanimizcontainer.cpp \
+        duyuruetkinlikcontainer.cpp \
+        hakkindacontainer.cpp \
+        headercontainer.cpp \
+        iletisimcontainer.cpp \
+        kitaplarcontainer.cpp \
+        main.cpp \
+        mainapplication.cpp \
+        maincontainer.cpp \
+        odullercontainer.cpp \
+        root/basvuruitem.cpp \
+        root/iletisimformu.cpp \
+        root/sinav.cpp \
+        root/smsmanager.cpp \
+        root/soru.cpp \
+        root/user.cpp \
+        user/basvuruyonetimpanel.cpp \
+        user/iletisimpanel.cpp \
+        user/sinavpanel.cpp \
+        user/soruonaypanel.cpp \
+        user/soruyonetimpanel.cpp \
+        user/userpanel.cpp \
+        userpanelcontainer.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -73,7 +96,6 @@ HEADERS += \
     ../../../Comman/CSSCustom.h \
     ../../../Comman/bootstrap.h \
     ../../../Comman/inlinestyle.h \
-    ../../../Comman/mainapplication.h \
     ../../../Comman/mongoheaders.h \
     BaseClass/basewidget.h \
     BaseClass/containerwiget.h \
@@ -81,4 +103,30 @@ HEADERS += \
     BaseClass/dbclass.h \
     BaseClass/dialog.h \
     BaseClass/itembase.h \
-    BaseClass/wtheaders.h
+    BaseClass/smsabstrackmanager.h \
+    BaseClass/smsitem.h \
+    BaseClass/wtheaders.h \
+    baskanimizcontainer.h \
+    duyuruetkinlikcontainer.h \
+    hakkindacontainer.h \
+    headercontainer.h \
+    iletisimcontainer.h \
+    kitaplarcontainer.h \
+    mainapplication.h \
+    maincontainer.h \
+    odullercontainer.h \
+    response.hpp \
+    root/basvuruitem.h \
+    root/css.h \
+    root/iletisimformu.h \
+    root/sinav.h \
+    root/smsmanager.h \
+    root/soru.h \
+    root/user.h \
+    user/basvuruyonetimpanel.h \
+    user/iletisimpanel.h \
+    user/sinavpanel.h \
+    user/soruonaypanel.h \
+    user/soruyonetimpanel.h \
+    user/userpanel.h \
+    userpanelcontainer.h

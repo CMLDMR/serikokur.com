@@ -178,6 +178,27 @@ void ContainerWidget::informDialog(const std::string &informMessage)
     mDialog->show ();
 }
 
+void ContainerWidget::informDialog(const std::string &title, const std::string &informMessage)
+{
+    auto mDialog = wApp->instance()->root()->addChild (cpp14::make_unique<WDialog>());
+
+
+    mDialog->titleBar ()->addWidget (cpp14::make_unique<WText>("<h5><b>"+title+"</b></h5>"));
+    mDialog->titleBar ()->addStyleClass (Bootstrap::ContextualBackGround::bg_primary);
+
+
+    mDialog->contents ()->addWidget (cpp14::make_unique<WText>(informMessage));
+    mDialog->contents ()->addStyleClass (Bootstrap::ContextualBackGround::bg_info);
+
+    auto closeBtn = mDialog->footer ()->addWidget (cpp14::make_unique<WPushButton>("Tamam"));
+    closeBtn->addStyleClass (Bootstrap::Button::Primary);
+
+    closeBtn->clicked ().connect ([=](){
+        wApp->instance()->root()->removeChild(mDialog);
+    });
+    mDialog->show ();
+}
+
 
 
 std::unique_ptr<WContainerWidget> ContainerWidget::createButton(const std::string &menuName, const Cursor cursor)

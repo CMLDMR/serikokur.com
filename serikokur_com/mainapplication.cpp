@@ -3,6 +3,7 @@
 #include "BaseClass/containerwiget.h"
 #include "bootstrap.h"
 #include "inlinestyle.h"
+#include "../url.h"
 
 MainApplication::MainApplication(const WEnvironment &env)
     :WApplication(env)
@@ -138,7 +139,7 @@ void MainApplication::init()
 {
 
     try {
-        mClient = new mongocxx::client(mongocxx::uri("mongodb://HooverPhonic:Aa<05358564091>@192.168.0.11:27018/?authSource=admin"));
+        mClient = new mongocxx::client(mongocxx::uri(_url));
     } catch (mongocxx::exception& e) {
         std::cout << "MongoDB Connection Error: " << e.what() << std::endl;
         root()->addWidget(cpp14::make_unique<WText>("Driver Yüklenemedi!"));

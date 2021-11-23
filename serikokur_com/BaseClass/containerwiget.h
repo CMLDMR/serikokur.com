@@ -13,10 +13,12 @@ constexpr int MINOR = 3;
 constexpr int REV = 31;
 constexpr int COM = 477;
 
-
+#ifndef LOG
 #define LOG std::cout <<"\n"<< __LINE__ << " " << __FUNCTION__ << " -> "
+#define LOGEND "\n"
 #define LOGN std::cout << "\n"<<__LINE__ << " " << __FUNCTION__ << "\n"
-
+#define LOGSTR(x) std::cout << "\n"<<__LINE__ << " " << __FUNCTION__ << ": "<< x << "\n"
+#endif
 
 
 
@@ -44,6 +46,7 @@ public:
     void warnDialog( const std::string &warnMessage );
     void criticDialog( const std::string &criticMessage );
     void informDialog( const std::string &informMessage );
+    void informDialog( const std::string &title , const std::string &informMessage );
 
 
 
