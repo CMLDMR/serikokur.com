@@ -22,12 +22,17 @@ public:
     Signal<std::string> &smsSended();
     Signal<std::string> &ErrorOccured();
     Signal<std::string> &messageOccured();
+
+    const std::string &lastError() const;
+
 private:
     Http::Client* mHttpClient;
 
     Signal<std::string> _smsSended;
     Signal<std::string> _errorOccured;
     Signal<std::string> _messageOccured;
+
+    std::string mLastError;
 
     QString mLastCheckItemOid;
 };

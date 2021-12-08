@@ -361,6 +361,9 @@ int Soru::voteCount() const
 
 bool Soru::isGecerli() const
 {
+    if( isDeleted() ) return false;
+    if( redCount() ) return false;
+
     if( ( voteCount() >= 3 ) && ( onayCount() > redCount() ) ){
         return true;
     }else {

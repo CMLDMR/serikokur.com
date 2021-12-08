@@ -23,6 +23,7 @@ private:
         ONAYSIZ,
         OYLAMATAMAM,
         OYLAMABEKLEYEN,
+        IPTAL,
         NONE
     };
 

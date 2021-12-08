@@ -22,7 +22,8 @@ bool SMSManager::insertAndSendSMS(const SerikBLDCore::SMS::SMSItem &item)
 
     if( !confirmTelefonNumarasi ( item.numaraText () ) )
     {
-        _errorOccured.emit (QString("Telefon Numarasında Hata Var").toStdString ());
+        this->mLastError = "Telefon Numarasında Hata Var";
+        _errorOccured.emit (mLastError);
         return false;
     }
 
@@ -30,13 +31,15 @@ bool SMSManager::insertAndSendSMS(const SerikBLDCore::SMS::SMSItem &item)
     int kalanSure = 0;
     if( !canSend ( item.numaraText () , kalanSure ) )
     {
-        _errorOccured.emit (QString("Bu Numaraya 1 DK içinde 2 SMS Gönderilemez. Kalan Süre:%1").arg (QTime::fromMSecsSinceStartOfDay (60000-kalanSure).toString ("mm:ss")).toStdString ());
+        this->mLastError = QString("Bu Numaraya 1 DK içinde 2 SMS Gönderilemez. Kalan Süre:%1").arg (QTime::fromMSecsSinceStartOfDay (60000-kalanSure).toString ("mm:ss")).toStdString ();
+        _errorOccured.emit (mLastError);
         return false;
     }
 
     if( mSMSGonderiliyor )
     {
-        _errorOccured.emit ("Bu Numaraya SMS Gönderme İşlemi Tamamlanmadı.");
+        this->mLastError = "Bu Numaraya SMS Gönderme İşlemi Tamamlanmadı.";
+        _errorOccured.emit (mLastError);
         return false;
     }
     mSMSGonderiliyor = true;
@@ -219,4 +222,9 @@ Signal<std::string> &SMSManager::messageOccured()
 {
     return _messageOccured;
 
+}
+
+const std::string &SMSManager::lastError() const
+{
+    return mLastError;
 }

@@ -55,6 +55,8 @@
 #include <Wt/Http/Request.h>
 #include <Wt/Http/Response.h>
 #include <Wt/WBootstrapTheme.h>
+#include <Wt/WPainter.h>
+
 
 #include <Wt/WStandardItemModel.h>
 #include <Wt/WTableView.h>

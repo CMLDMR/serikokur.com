@@ -75,7 +75,7 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
             break;
 
         case FILTER::ONAYSIZ:
-            if( item.voteCount() >= 3 && ( item.redCount() > item.onayCount() ) ){
+            if( !item.isGecerli() ){
                 newList.append(item);
             }
             break;
@@ -89,6 +89,12 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
                 newList.append(item);
             }
             break;
+
+        case FILTER::IPTAL:
+            if( item.isDeleted() ){
+                newList.append(item);
+            }
+            break;
         default:
             break;
         }
@@ -96,11 +102,6 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
 
 
     for( const auto &item : newList ){
-
-
-        //        LOG << item.voteCount() << LOGEND;
-
-
 
 
         if( soruCounter%4 == 0 ){
@@ -317,7 +318,45 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
             auto text_telefon = vLayout->addWidget(cpp14::make_unique<WText>("İletişim: "+ekleyenUser.getTelefon()));
             text_telefon->addStyleClass(Bootstrap::Label::Default);
             text_telefon->setAttributeValue(Style::style,Style::font::size::s11px);
+
+            vLayout->addWidget(cpp14::make_unique<WText>("Kitap: "+item.getKitap()));
+
+//            if( item.getKitap().empty() ){
+
+//                Soru filter;
+//                filter.setOid(item.oid().value().to_string());
+
+
+//                if( ekleyenUser.getAdSoyad() == "E.Berna YANIK AKÇEHRE" ){
+//                    filter.setKitap("Fatih-i Harbiye");
+//                }else if( ekleyenUser.getAdSoyad() == "Deniz PİŞKİN" ){
+//                    filter.setKitap("Acımak");
+//                }else if( ekleyenUser.getAdSoyad() == "Ertan ALP" ){
+//                    filter.setKitap("Mücella");
+//                }else if( ekleyenUser.getAdSoyad() == "Şükriye PUSELİ" ){
+//                    filter.setKitap("Deli Tarla");
+//                }else if( ekleyenUser.getAdSoyad() == "Esra NAR" ){
+//                    filter.setKitap("Deli Tarla");
+//                }else if( ekleyenUser.getAdSoyad() == "İbrahim ETLİ" ){
+//                    filter.setKitap("101 Deyim 101 Öykü");
+//                }else if( ekleyenUser.getAdSoyad() == "Deniz GÜLER" ){
+//                    filter.setKitap("Acımak");
+//                }else if( ekleyenUser.getAdSoyad() == "Samet KAYA" ){
+//                    filter.setKitap("Fatih-i Harbiye");
+//                }else if( ekleyenUser.getAdSoyad() == "Hasan KARA" ){
+//                    filter.setKitap("101 Deyim 101 Öykü");
+//                }else if( ekleyenUser.getAdSoyad() == "Emine LAFAKOZ" ){
+//                    filter.setKitap("Mücella");
+//                }
+
+//                if( this->UpdateItem(filter) ){
+
+//                }
+//            }
         }
+
+
+
 
 
 
@@ -329,13 +368,14 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
 void SoruOnayPanel::initStatistic()
 {
 
-    this->setLimit(250);
+    this->setLimit(500);
     auto list = this->UpdateList();
 
     int onayliSoruAdedi = 0;
     int onaysizSoruAdedi = 0;
     int oylanmisSoruAdedi = 0;
     int yetersizOylamaSoruAdedi = 0;
+    int iptalEdilenSoruAdedi = 0;
 
 
     for( const auto &item : qAsConst(list) ){
@@ -351,6 +391,10 @@ void SoruOnayPanel::initStatistic()
         }else{
             yetersizOylamaSoruAdedi++;
         }
+
+        if( item.isDeleted() ){
+            iptalEdilenSoruAdedi++;
+        }
     }
 
     {
@@ -360,32 +404,43 @@ void SoruOnayPanel::initStatistic()
         container_->addStyleClass(Bootstrap::Grid::col_full_12);
         auto hlayout = container_->setLayout(cpp14::make_unique<WHBoxLayout>());
 
-        auto hepsitext = hlayout->addWidget(cpp14::make_unique<WText>(WString("<h5>Hepsi: {1}</h5>").arg(list.count())));
-        hepsitext->addStyleClass(Bootstrap::Label::Default);
-        hepsitext->decorationStyle().setCursor(Cursor::PointingHand);
+        auto hepsitext = hlayout->addWidget(cpp14::make_unique<WText>(WString("Hepsi: {1}").arg(list.count())));
+        hepsitext->setPadding(2,AllSides);
+        hepsitext->setAttributeValue(Style::style,Style::background::color::color(Style::color::Grey::DarkSlateGray)+Style::color::color(Style::color::White::AliceBlue));
         hepsitext->clicked().connect([=](){
             mCurrentFilter = FILTER::NONE;
             this->UpdateList();
         });
 
-        auto onaylitext = hlayout->addWidget(cpp14::make_unique<WText>(WString("<h5>Onaylı: {1}</h5>").arg(onayliSoruAdedi)));
-        onaylitext->addStyleClass(Bootstrap::Label::Success);
+        auto gecerliSoruText = hlayout->addWidget(cpp14::make_unique<WText>(WString("Geçerli: {1}").arg(list.count()-iptalEdilenSoruAdedi)));
+        gecerliSoruText->setPadding(2,AllSides);
+        gecerliSoruText->setAttributeValue(Style::style,Style::background::color::color(Style::color::Grey::SlateGray)+Style::color::color(Style::color::White::AliceBlue));
+        gecerliSoruText->clicked().connect([=](){
+            mCurrentFilter = FILTER::NONE;
+            this->UpdateList();
+        });
+
+        auto onaylitext = hlayout->addWidget(cpp14::make_unique<WText>(WString("Onaylı: {1}").arg(onayliSoruAdedi)));
+        onaylitext->setPadding(2,AllSides);
+        onaylitext->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::DarkGreen)+Style::color::color(Style::color::White::AliceBlue));
         onaylitext->decorationStyle().setCursor(Cursor::PointingHand);
         onaylitext->clicked().connect([=](){
             mCurrentFilter = FILTER::ONAYLI;
             this->UpdateList();
         });
 
-        auto onaysiztext = hlayout->addWidget(cpp14::make_unique<WText>(WString("<h5>Onaysız: {1}</h5>").arg(onaysizSoruAdedi)));
-        onaysiztext->addStyleClass(Bootstrap::Label::Danger);
+        auto onaysiztext = hlayout->addWidget(cpp14::make_unique<WText>(WString("Red: {1}").arg(onaysizSoruAdedi)));
+        onaysiztext->setPadding(2,AllSides);
+        onaysiztext->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue));
         onaysiztext->decorationStyle().setCursor(Cursor::PointingHand);
         onaysiztext->clicked().connect([=](){
             mCurrentFilter = FILTER::ONAYSIZ;
             this->UpdateList();
         });
 
-        auto oylanmistext = hlayout->addWidget(cpp14::make_unique<WText>(WString("<h5>Oylaması Tamamlanmış: {1}</h5>").arg(oylanmisSoruAdedi)));
-        oylanmistext->addStyleClass(Bootstrap::Label::info);
+        auto oylanmistext = hlayout->addWidget(cpp14::make_unique<WText>(WString("Oylaması Tamamlanmış: {1}").arg(oylanmisSoruAdedi)));
+        oylanmistext->setPadding(2,AllSides);
+        oylanmistext->setAttributeValue(Style::style,Style::background::color::color(Style::color::Purple::RoyalBlue)+Style::color::color(Style::color::White::AliceBlue));
         oylanmistext->decorationStyle().setCursor(Cursor::PointingHand);
         oylanmistext->clicked().connect([=](){
             mCurrentFilter = FILTER::OYLAMATAMAM;
@@ -393,11 +448,21 @@ void SoruOnayPanel::initStatistic()
         });
 
 
-        auto oylamadevamtext = hlayout->addWidget(cpp14::make_unique<WText>(WString("<h5>Oylaması Devam Eden: {1}</h5>").arg(yetersizOylamaSoruAdedi)));
-        oylamadevamtext->addStyleClass(Bootstrap::Label::Warning);
+        auto oylamadevamtext = hlayout->addWidget(cpp14::make_unique<WText>(WString("Oylaması Devam Eden: {1}").arg(yetersizOylamaSoruAdedi)));
+        oylamadevamtext->setPadding(2,AllSides);
+        oylamadevamtext->setAttributeValue(Style::style,Style::background::color::color(Style::color::Orange::DarkOrange)+Style::color::color(Style::color::White::AliceBlue));
         oylamadevamtext->decorationStyle().setCursor(Cursor::PointingHand);
         oylamadevamtext->clicked().connect([=](){
             mCurrentFilter = FILTER::OYLAMABEKLEYEN;
+            this->UpdateList();
+        });
+
+        auto iptalEdilenText = hlayout->addWidget(cpp14::make_unique<WText>(WString("İptal: {1}").arg(iptalEdilenSoruAdedi)));
+        iptalEdilenText->setPadding(2,AllSides);
+        iptalEdilenText->setAttributeValue(Style::style,Style::background::color::color(Style::color::Grey::Black)+Style::color::color(Style::color::White::AliceBlue));
+        iptalEdilenText->decorationStyle().setCursor(Cursor::PointingHand);
+        iptalEdilenText->clicked().connect([=](){
+            mCurrentFilter = FILTER::IPTAL;
             this->UpdateList();
         });
     }
@@ -406,10 +471,10 @@ void SoruOnayPanel::initStatistic()
         auto container_ = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
         container_->addStyleClass(Bootstrap::Grid::col_full_12);
         container_->setAttributeValue(Style::style,Style::background::color::color(Style::color::Grey::DarkSlateGray)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
-        container_->addWidget(cpp14::make_unique<WText>("Soru Ekleyenler Listesi"));
+        container_->addWidget(cpp14::make_unique<WText>("Soru Onaylayanlar Listesi"));
         Soru filter;
 
-//        filter.UnDelete();
+        //        filter.UnDelete();
 
 
         auto list = this->GetList(filter,500,0);
@@ -437,9 +502,94 @@ void SoruOnayPanel::initStatistic()
             }
         }
 
+
+
+
+
+
+        for( const auto &userItem : userList ){
+
+            if( userItem.getYetki().contains(Yetki::soruonay) ){
+
+
+
+                    int oysayisi = 0;
+                    int redsayisi = 0;
+                    int onaySayisi = 0;
+                    int iptalEdilen = 0;
+                    for( const auto &ekleyenOid : list ){
+
+                        if( ekleyenOid.isDeleted() ){
+                            iptalEdilen++;
+                        }
+
+                        for( const auto &onay : ekleyenOid.getOnayStruct() ){
+
+                            if( onay.owner == userItem.oid().value().to_string() && !ekleyenOid.isDeleted() ){
+                                oysayisi++;
+                                if( onay.Onay ){
+                                    onaySayisi++;
+                                }else{
+                                    redsayisi++;
+                                }
+                            }
+                        }
+                    }
+
+                    auto addThumbnail = [=](const std::string &text,const std::string &color , const std::string &backColor, const std::string &bootstrap){
+
+                        auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                        container->setAttributeValue(Style::style,Style::color::color(color)+Style::background::color::color(backColor));
+                        container->addWidget(cpp14::make_unique<WText>(text));
+                        container->addStyleClass(bootstrap);
+
+
+                    };
+
+
+                    addThumbnail(userItem.getAdSoyad()+" "+userItem.getTelefon(),"white",Style::color::Grey::DimGray,Bootstrap::Grid::Large::col_lg_3+Bootstrap::Grid::Medium::col_md_3+Bootstrap::Grid::Small::col_sm_6+Bootstrap::Grid::ExtraSmall::col_xs_12);
+                    addThumbnail("Kalan Oylama: "+std::to_string(list.size()-iptalEdilen-oysayisi),"white",(list.size()-iptalEdilen-oysayisi) > 0 ? Style::color::Red::FireBrick : Style::color::Green::DarkGreen ,Bootstrap::Grid::Large::col_lg_3+Bootstrap::Grid::Medium::col_md_3+Bootstrap::Grid::Small::col_sm_6+Bootstrap::Grid::ExtraSmall::col_xs_12);
+                    addThumbnail("Oylanan: " + std::to_string(oysayisi),"white",Style::color::Grey::DarkGray,Bootstrap::Grid::Large::col_lg_2+Bootstrap::Grid::Medium::col_md_2+Bootstrap::Grid::Small::col_sm_4+Bootstrap::Grid::ExtraSmall::col_xs_12);
+                    addThumbnail("Red: " + std::to_string(redsayisi),"white",Style::color::Red::FireBrick,Bootstrap::Grid::Large::col_lg_2+Bootstrap::Grid::Medium::col_md_2+Bootstrap::Grid::Small::col_sm_4+Bootstrap::Grid::ExtraSmall::col_xs_12);
+                    addThumbnail("Onaylanan: " + std::to_string(onaySayisi),"white",Style::color::Green::DarkGreen,Bootstrap::Grid::Large::col_lg_2+Bootstrap::Grid::Medium::col_md_2+Bootstrap::Grid::Small::col_sm_4+Bootstrap::Grid::ExtraSmall::col_xs_12);
+
+
+                    auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                    container->addStyleClass(Bootstrap::Grid::col_full_12);
+                    container->setHeight(5);
+
+            }
+
+        }
+
+
+
+
+
+        auto container__ = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+        container__->addStyleClass(Bootstrap::Grid::col_full_12);
+        container__->setAttributeValue(Style::style,Style::background::color::color(Style::color::Grey::DarkSlateGray)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+        container__->addWidget(cpp14::make_unique<WText>("Soru Ekleyenler Listesi"));
+        container__->setMargin(25,Side::Top);
+
+
+
+
+
+
+
+
+
+
+
         std::map<std::string,int> totalSoruEkleyen;
 
 
+
+
+
+        ///////////////////////////////////////////////////////////
+        ///Onaylama Listesi
         int indexCounter = 1;
         for( const auto &userItem : userList ){
 
@@ -447,9 +597,21 @@ void SoruOnayPanel::initStatistic()
                 bool ekli = false;
                 for( const auto &item : ekleyenList ){
                     int soruCount = 0;
+                    int iptalEdilenSoruCount = 0;
+                    int onaylanmis = 0;
+                    int redEdilmis = 0;
                     for( const auto &ekleyenOid : list ){
                         if( ekleyenOid.getEkleyen() == item ){
                             soruCount++;
+                            if( ekleyenOid.isDeleted() ){
+                                iptalEdilenSoruCount++;
+                            }
+                            if( ekleyenOid.isGecerli() ){
+                                onaylanmis++;
+                            }
+                            if( ekleyenOid.redCount() ){
+                                redEdilmis++;
+                            }
                         }
                     }
                     if( item == userItem.oid().value().to_string() ){
@@ -460,10 +622,22 @@ void SoruOnayPanel::initStatistic()
                         container->setHeight(20);
                         if( soruCount < 25 && soruCount > 0 ){
                             container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Orange::DarkOrange)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
-                            container->addWidget(cpp14::make_unique<WText>(std::to_string(indexCounter)+WString(". {1}-{2} : {3} Adet  EKSİK!").arg(userItem.getAdSoyad()).arg(userItem.getTelefon()).arg(soruCount)));
+                            container->addWidget(cpp14::make_unique<WText>(std::to_string(indexCounter)+WString(". {1}-{2} : {3} Adet  EKSİK!  iptal:{4} onaylı:{5} red:{6}")
+                                                                           .arg(userItem.getAdSoyad())
+                                                                           .arg(userItem.getTelefon())
+                                                                           .arg(soruCount)
+                                                                           .arg(iptalEdilenSoruCount)
+                                                                           .arg(onaylanmis)
+                                                                           .arg(redEdilmis)));
                         }else if( soruCount >= 25 ){
                             container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::DarkGreen)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
-                            container->addWidget(cpp14::make_unique<WText>(std::to_string(indexCounter)+WString(". {1}-{2} : {3} Adet Tamamlandı").arg(userItem.getAdSoyad()).arg(userItem.getTelefon()).arg(soruCount)));
+                            container->addWidget(cpp14::make_unique<WText>(std::to_string(indexCounter)+WString(". {1}-{2} : {3} Adet  Tamamlandı  iptal:{4} onaylı:{5} red:{6}")
+                                                                           .arg(userItem.getAdSoyad())
+                                                                           .arg(userItem.getTelefon())
+                                                                           .arg(soruCount)
+                                                                           .arg(iptalEdilenSoruCount)
+                                                                           .arg(onaylanmis)
+                                                                           .arg(redEdilmis)));
                         }else{
 
                         }
@@ -492,10 +666,78 @@ void SoruOnayPanel::initStatistic()
 
         }
 
-//        for( const auto &item : totalSoruEkleyen ){
-//            LOG << item.first << " " << item.second << LOGEND;
 
-//        }
+
+
+        // Kitap Soru Dağılımı
+        {
+
+            Soru filter;
+
+            filter.setKitap("Deli Tarla");
+            filter.UnDelete();
+            {
+                auto sayi = this->countItem(filter);
+                auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                container->addStyleClass(Bootstrap::Grid::col_full_12);
+                container->setHeight(20);
+                container->setContentAlignment(AlignmentFlag::Left);
+                container->setMargin(2,Side::Top);
+                container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+                container->addWidget(cpp14::make_unique<WText>(WString("{1}-{2}").arg(filter.getKitap()).arg(sayi)));
+            }
+
+            filter.setKitap("Mücella");
+            {
+                auto sayi = this->countItem(filter);
+                auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                container->addStyleClass(Bootstrap::Grid::col_full_12);
+                container->setHeight(20);
+                container->setContentAlignment(AlignmentFlag::Left);
+                container->setMargin(2,Side::Top);
+                container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+                container->addWidget(cpp14::make_unique<WText>(WString("{1}-{2}").arg(filter.getKitap()).arg(sayi)));
+            }
+
+            filter.setKitap("101 Deyim 101 Öykü");
+            {
+                auto sayi = this->countItem(filter);
+                auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                container->addStyleClass(Bootstrap::Grid::col_full_12);
+                container->setHeight(20);
+                container->setContentAlignment(AlignmentFlag::Left);
+                container->setMargin(2,Side::Top);
+                container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+                container->addWidget(cpp14::make_unique<WText>(WString("{1}-{2}").arg(filter.getKitap()).arg(sayi)));
+            }
+
+            filter.setKitap("Acımak");
+            {
+                auto sayi = this->countItem(filter);
+                auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                container->addStyleClass(Bootstrap::Grid::col_full_12);
+                container->setHeight(20);
+                container->setContentAlignment(AlignmentFlag::Left);
+                container->setMargin(2,Side::Top);
+                container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+                container->addWidget(cpp14::make_unique<WText>(WString("{1}-{2}").arg(filter.getKitap()).arg(sayi)));
+            }
+
+            filter.setKitap("Fatih-i Harbiye");
+            {
+                auto sayi = this->countItem(filter);
+                auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+                container->addStyleClass(Bootstrap::Grid::col_full_12);
+                container->setHeight(20);
+                container->setContentAlignment(AlignmentFlag::Left);
+                container->setMargin(2,Side::Top);
+                container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::DarkRed)+Style::color::color(Style::color::White::AliceBlue)+Style::font::weight::bold);
+                container->addWidget(cpp14::make_unique<WText>(WString("{1}-{2}").arg(filter.getKitap()).arg(sayi)));
+            }
+
+
+
+        }
 
 
 

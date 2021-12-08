@@ -13,6 +13,7 @@
 #include "root/basvuruitem.h"
 #include "root/smsmanager.h"
 #include "user/sinavpanel.h"
+#include "user/robotimage.h"
 
 
 class MainContainer : public ContainerWidget , public SerikBLDCore::DB
@@ -22,6 +23,10 @@ public:
     ~MainContainer();
 
     void init();
+
+    void initYarismaDetail();
+
+    void initSifreAl();
 
     void initLogo();
 
@@ -51,6 +56,8 @@ private:
     SMSManager *mSMSManager;
 
     BasvuruManager* mBasvuruManager;
+
+    std::string mDogrulamaKodu;
 
 };
 

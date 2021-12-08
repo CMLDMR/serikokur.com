@@ -1058,6 +1058,12 @@ void MainApplication::initBasvuru()
 
     basvurBtn->clicked().connect([=](){
 
+        if( WDate::currentDate().toJulianDay() >= WDate(2021,12,1).toJulianDay() ){
+            mMainContainer->informDialog("Başvurular Sona Erdi");
+            return;
+        }
+
+
         if( !onayCheckBox->isChecked() ){
             mMainContainer->warnDialog("Lütfen Önce Şartnameyi Kabul Ediniz");
             return;

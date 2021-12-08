@@ -39,6 +39,7 @@ SOURCES += \
         root/user.cpp \
         user/basvuruyonetimpanel.cpp \
         user/iletisimpanel.cpp \
+        user/robotimage.cpp \
         user/sinavpanel.cpp \
         user/soruonaypanel.cpp \
         user/soruyonetimpanel.cpp \
@@ -125,6 +126,7 @@ HEADERS += \
     root/user.h \
     user/basvuruyonetimpanel.h \
     user/iletisimpanel.h \
+    user/robotimage.h \
     user/sinavpanel.h \
     user/soruonaypanel.h \
     user/soruyonetimpanel.h \
