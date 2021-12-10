@@ -5,6 +5,7 @@
 #include "BaseClass/containerwiget.h"
 #include "root/css.h"
 #include "root/user.h"
+#include "root/sinav.h"
 
 class SoruOnayPanel : public ContainerWidget, public SoruManager
 {

@@ -117,6 +117,11 @@ public:
     virtual void onList(const QVector<BasvuruItem> *mlist) override;
 
     virtual void errorOccured(const std::string &errorText) override;
+
+    const std::string &lastError() const;
+
+private:
+    std::string mLastError;
 };
 
 #endif // BASVURUITEM_H

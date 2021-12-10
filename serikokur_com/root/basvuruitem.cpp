@@ -185,5 +185,10 @@ void BasvuruManager::onList(const QVector<BasvuruItem> *mlist)
 
 void BasvuruManager::errorOccured(const std::string &errorText)
 {
+    this->mLastError = errorText;
+}
 
+const std::string &BasvuruManager::lastError() const
+{
+    return mLastError;
 }

@@ -46,6 +46,8 @@ public:
 
     void initSinavScreen(const std::string &tcno);
 
+    void initSinavScreen();
+
 
     bool initUserPanel(const std::string &telefon, const std::string &password );
 

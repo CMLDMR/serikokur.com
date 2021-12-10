@@ -368,6 +368,72 @@ void SoruOnayPanel::onList(const QVector<Soru> *mlist)
 void SoruOnayPanel::initStatistic()
 {
 
+
+//    {
+//        auto mSinavManager = new SinavManager(this->getDB());
+
+//        auto istatistikContainer = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+//        istatistikContainer->addStyleClass(Bootstrap::Grid::col_full_12);
+
+//        auto rContainer = istatistikContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+//        rContainer->addStyleClass(Bootstrap::Grid::row);
+
+
+//        QVector<std::string> sorulmusList;
+
+//        auto sorulmusSoruList = mSinavManager->GetList(Sinav(),1000,0);
+//        for( int i = 0 ; i < sorulmusSoruList.count() ; i++ ){
+//            auto sorular  = sorulmusSoruList.at(i);
+//            for( const auto &soruOid : sorular.soruOidList() ){
+//                sorulmusList.push_back(soruOid);
+//            }
+//        }
+
+//        auto List = this->GetList(Soru().setKitap("Mücella"),250,0);
+//        for( const auto &item : List ){
+//            if( item.isGecerli() ){
+//                int sorulmaSayisi = 0;
+//                for( const auto &sorulmusItem : sorulmusList ){
+//                    if( item.oid().value().to_string() == sorulmusItem ){
+//                        sorulmaSayisi++;
+//                    }
+//                }
+//                auto bookNameContainer = rContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+//                bookNameContainer->addStyleClass(Bootstrap::Grid::Large::col_lg_1);
+//                bookNameContainer->addWidget(cpp14::make_unique<WText>("Mücella"));
+
+//                auto SoruOidContainer = rContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+//                SoruOidContainer->addStyleClass(Bootstrap::Grid::Large::col_lg_2);
+//                SoruOidContainer->addWidget(cpp14::make_unique<WText>(item.oid().value().to_string() + WString(" : {1}").arg(sorulmaSayisi).toUTF8()));
+
+//                auto SorulmaCountContainer = rContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+//                SorulmaCountContainer->addStyleClass(Bootstrap::Grid::Large::col_lg_3);
+//                SorulmaCountContainer->addWidget(cpp14::make_unique<WText>(WString("{1}").arg(sorulmaSayisi)));
+//                SorulmaCountContainer->setPositionScheme(PositionScheme::Relative);
+
+//                auto percentContainer = SorulmaCountContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+//                percentContainer->setPositionScheme(PositionScheme::Absolute);
+//                percentContainer->setOffsets(0,Side::Top|Side::Left);
+//                percentContainer->setHeight(WLength("100%"));
+
+//                double dSayisi = static_cast<double>(sorulmaSayisi);
+
+//                percentContainer->setWidth(WLength(WString("{1}%").arg(dSayisi/724.*100).toUTF8()));
+//                percentContainer->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::LightCoral));
+//            }
+//        }
+
+
+//    }
+
+
+
+
+
+
+
+
+
     this->setLimit(500);
     auto list = this->UpdateList();
 

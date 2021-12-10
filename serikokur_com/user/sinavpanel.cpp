@@ -15,6 +15,9 @@ SinavPanel::SinavPanel(SerikBLDCore::DB *_mDB, const std::string &tcno)
     BasvuruItem filter;
     filter.setTCNO(this->tCNO());
 
+
+    std::cout << bsoncxx::to_json(filter.view()) << std::endl;
+
     auto val = this->mBasvuruManager->FindOneItem(filter);
 
 
@@ -34,8 +37,9 @@ SinavPanel::SinavPanel(SerikBLDCore::DB *_mDB, const std::string &tcno)
             container->setContentAlignment(AlignmentFlag::Center);
             auto hLayout = container->setLayout(cpp14::make_unique<WHBoxLayout>());
             hLayout->addStretch(1);
-            auto infoText = hLayout->addWidget(cpp14::make_unique<WText>("<p>Başvurunuz Onaylanmış<br><i>"
-                                                                         +mBasvuru->getAdSoyad()+"</i></p>",TextFormat::UnsafeXHTML));
+            auto infoText = hLayout->addWidget(cpp14::make_unique<WText>("<p>Başvurunuz Onaylanmış<br><i>AdSoyad: "
+                                                                         +mBasvuru->getAdSoyad()+"</i><br>TCNO: "
+                                                                         +mBasvuru->getTCNO()+"</p>",TextFormat::UnsafeXHTML));
             infoText->addStyleClass(Bootstrap::Label::Success);
             infoText->setAttributeValue(Style::style,Style::font::size::s14px);
             infoText->setPadding(15,AllSides);
@@ -111,6 +115,7 @@ void SinavPanel::initMenu()
 {
 
 
+
     this->Content()->clear();
 
     auto container = this->Content()->addWidget(cpp14::make_unique<WContainerWidget>());
@@ -137,25 +142,14 @@ void SinavPanel::initMenu()
             Sinav newSinav;
             newSinav.setSahibi(mTCNO);
 
-            auto soruList = mSoruManager->GetList(Soru(),250,0);
+            auto soruList = this->PrepareSoruList();;
 
-
-
-            std::vector<int> indexList;
-
-            while( indexList.size() < 25 ){
-
-                auto index = this->getRandom(0,soruList.size()-1);
-                if( std::find(indexList.begin(),indexList.end(),index) != indexList.end() ){
-
-                }else{
-                    mSoruList.push_back(soruList.at(index).oid().value().to_string());
-                    indexList.push_back(index);
-                }
-
-            }
-
-            newSinav.setSoruOidList(mSoruList);
+//            std::cout << "\n SoruListCount: " << soruList.size() << "\n";
+//            for( const auto &soru : soruList ){
+////                std::cout << "\n SoruOid: " << soru;
+//            }
+            newSinav.setSoruOidList(soruList);
+//            std::cout << "\n View: " << bsoncxx::to_json(newSinav.view()) << "\n";
 
             if( mSinavManager->InsertItem(newSinav).size() ){
                 this->informDialog("Sınav Oluşturuldu");
@@ -191,32 +185,21 @@ void SinavPanel::initMenu()
 
             createContainer->clicked().connect(this,&SinavPanel::initSoruList);
         }
-
-
-
-
-
     }
-
-
     hLayout->addStretch(1);
-
-
-
-
 }
 
 
 void SinavPanel::initSoruList()
 {
 
-//    LOG;
+    //    LOG;
     if( mSoruList.empty() ){
         this->warnDialog("Sınav Sorularınız da Hata Var: " + std::to_string(mSoruList.size()));
         return;
     }
 
-//    LOG;
+    //    LOG;
     this->Content()->clear();
 
     {
@@ -232,12 +215,13 @@ void SinavPanel::initSoruList()
                                                                     "Kesintisiz Çalışacağından Emin Olunuz.</p>"
                                                                     "<p>Sorular Sırasıyla Gelecektir.<br>"
                                                                     "Cevap Verdiğiniz Sorulara Tekrar Geri Dönemezsiniz.<br></p>"
+                                                                    "Soruları Pas Geçemezsiniz.<br></p>"
                                                                     "<p>Sınav Süreniz <b>30 Dakikadır</b></p>"
-                                                                    "<p>Sınavın Sonuna Gelmeden de Sınavını Bitirebilirsiniz</p>",TextFormat::UnsafeXHTML));
+                                                                    "<p>Sınavın Sonuna Gelmeden de Sınavı Bırakabilirsiniz</p>",TextFormat::UnsafeXHTML));
         text->setTextAlignment(AlignmentFlag::Justify);
     }
 
-//LOG;
+    //LOG;
     {
         auto container = this->Content()->addWidget(cpp14::make_unique<WContainerWidget>());
         container->addStyleClass(Bootstrap::Grid::col_full_12);
@@ -247,14 +231,108 @@ void SinavPanel::initSoruList()
         container_->setMaximumSize(1024,WLength::Auto);
         auto baslaBTN = container_->addWidget(cpp14::make_unique<WPushButton>("Başla"));
         baslaBTN->clicked().connect(this,[=](){
-//            LOG << QDateTime::currentSecsSinceEpoch();
+            //            LOG << QDateTime::currentSecsSinceEpoch();
             this->SinavaBasla();
         });
         baslaBTN->addStyleClass(Bootstrap::Button::Danger);
 
     }
 
-//LOG;
+    //LOG;
+}
+
+std::vector<std::string> SinavPanel::PrepareSoruList()
+{
+
+    std::vector<std::string> soruList;
+
+    QVector<std::string> sorulmusList;
+
+    auto sorulmusSoruList = mSinavManager->GetList(Sinav(),1000,0);
+    for( int i = 0 ; i < sorulmusSoruList.count() ; i++ ){
+        auto sorular  = sorulmusSoruList.at(i);
+        for( const auto &soruOid : sorular.soruOidList() ){
+            sorulmusList.push_back(soruOid);
+        }
+    }
+
+
+
+
+    auto mucella_List = this->PrepareSoruPerBook("Mücella",sorulmusList,soruList);
+    auto deyim_List = this->PrepareSoruPerBook("101 Deyim 101 Öykü",sorulmusList,soruList);
+    auto fatih_List = this->PrepareSoruPerBook("Fatih-i Harbiye",sorulmusList,soruList);
+    auto deli_List = this->PrepareSoruPerBook("Deli Tarla",sorulmusList,soruList);
+    auto acimak_List = this->PrepareSoruPerBook("Acımak",sorulmusList,soruList);
+
+    for( const auto &item : mucella_List ){
+        soruList.push_back(item);
+    }
+
+    for( const auto &item : deyim_List ){
+        soruList.push_back(item);
+    }
+
+    for( const auto &item : fatih_List ){
+        soruList.push_back(item);
+    }
+
+    for( const auto &item : deli_List ){
+        soruList.push_back(item);
+    }
+
+    for( const auto &item : acimak_List ){
+        soruList.push_back(item);
+    }
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(soruList.begin(), soruList.end(), g);
+
+    return soruList;
+
+
+}
+
+std::vector<std::string> SinavPanel::PrepareSoruPerBook(const std::string &bookName, QVector<std::string> sorulmusList, std::vector<std::string> &sorulacakList)
+{
+    QVector<SiralamaItem> mList;
+    std::vector<std::string> rList;
+
+    auto List = mSoruManager->GetList(Soru().setKitap(bookName),250,0);
+    for( const auto &item : List ){
+        if( item.isGecerli() ){
+            int sorulmaSayisi = 0;
+            for( const auto &sorulmusItem : sorulmusList ){
+                if( item.oid().value().to_string() == sorulmusItem ){
+                    sorulmaSayisi++;
+                }
+            }
+            mList.push_back(SiralamaItem{item.oid().value().to_string(),sorulmaSayisi});
+        }
+    }
+    std::sort(mList.begin(),mList.end());
+//    std::cout << "\n" << bookName << " SoruCount: " << mList.count() << "\n";
+    mList.remove(15,mList.count()-15);
+//    std::cout << "\n" << bookName << " SoruCount: " << mList.count() << "\n";
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(mList.begin(), mList.end(), g);
+
+    for( int i = 0 ; i < mList.count() ; i++ ){
+        rList.push_back(mList.at(i).soruOid);
+//        std::cout << "\n" << bookName << " " << mList.at(i).soruOid;
+        if( i >= 4 ){
+            break;
+        }
+    }
+
+
+
+    return rList;
 }
 
 const std::string &SinavPanel::tCNO() const
@@ -330,8 +408,8 @@ void SinavPanel::SinavaBasla()
             }
         }
 
-        LOG << "Exist List Size: " << existList.size();
-        LOG << "NewList Size: " << newList.size();
+//        LOG << "Exist List Size: " << existList.size();
+//        LOG << "NewList Size: " << newList.size();
 
         if( existList.size() >= 25 ){
 
@@ -347,25 +425,25 @@ void SinavPanel::SinavaBasla()
 
         auto soruWidget = this->Content()->addWidget(cpp14::make_unique<SinavSorusuWidget>(currentMSecFromEpoc,newList,existList));
         soruWidget->Cevap().connect([=]( const int &cevapIndex , const std::string &soruOid ){
-           LOG << "Cevap Index: " << cevapIndex << " SoruOid: " << soruOid << "\n";
-           mSelectedIndex = cevapIndex;
-           mSelectedOid = soruOid;
+            LOG << "Cevap Index: " << cevapIndex << " SoruOid: " << soruOid << "\n";
+            mSelectedIndex = cevapIndex;
+            mSelectedOid = soruOid;
         });
 
         soruWidget->Cevaplandi().connect([=]( ){
-           LOG << "Cevap Saved Index: " << mSelectedIndex << " SoruOid: " << mSelectedOid << "\n";
+            LOG << "Cevap Saved Index: " << mSelectedIndex << " SoruOid: " << mSelectedOid << "\n";
 
-           SerikBLDCore::Item item("");
-           item.append(SKey::Sinav::Cevaplar::cevapIndex,bsoncxx::types::b_int32{mSelectedIndex});
-           item.append(SKey::Sinav::Cevaplar::soruOid,bsoncxx::oid{mSelectedOid});
-           item.append(SKey::Sinav::Cevaplar::timeStamp,bsoncxx::types::b_int64{QDateTime::currentSecsSinceEpoch()});
+            SerikBLDCore::Item item("");
+            item.append(SKey::Sinav::Cevaplar::cevapIndex,bsoncxx::types::b_int32{mSelectedIndex});
+            item.append(SKey::Sinav::Cevaplar::soruOid,bsoncxx::oid{mSelectedOid});
+            item.append(SKey::Sinav::Cevaplar::timeStamp,bsoncxx::types::b_int64{QDateTime::currentSecsSinceEpoch()});
 
-           auto val = mSinavManager->pushValue(Sinav().setOid(mSinav.get()->oid().value()),SKey::Sinav::cevaplar,item);
-           if( val ){
+            auto val = mSinavManager->pushValue(Sinav().setOid(mSinav.get()->oid().value()),SKey::Sinav::cevaplar,item);
+            if( val ){
                 LOG << "Cevaplandı: "<<val.value().modified_count() << "\n";
-           }else{
-               LOG << "Error: " << mSinavManager->getLastError().toStdString() << "\n";
-           }
+            }else{
+                LOG << "Error: " << mSinavManager->getLastError().toStdString() << "\n";
+            }
         });
     }
 
@@ -410,7 +488,7 @@ SinavSorusuWidget::SinavSorusuWidget(const long long &baslangicTime, const QVect
 
 Signal<int, std::string> &SinavSorusuWidget::Cevap()
 {
-        return _cevap;
+    return _cevap;
 }
 
 Signal<NoClass> &SinavSorusuWidget::Cevaplandi()
@@ -433,45 +511,47 @@ void SinavSorusuWidget::ShowSoru(const int &index)
     cevapIndex = -1;
 
 
-        this->Header()->clear();
+    this->Header()->clear();
 
 
-        auto barContainer = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
-        barContainer->setPositionScheme(PositionScheme::Relative);
-        barContainer->setHeight(25);
-        barContainer->addStyleClass(Bootstrap::Grid::col_full_12);
+    auto barContainer = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+    barContainer->setPositionScheme(PositionScheme::Relative);
+    barContainer->setHeight(25);
+    barContainer->addStyleClass(Bootstrap::Grid::col_full_12);
+    barContainer->setOverflow(Overflow::Hidden);
 
-        auto percentBar = barContainer->addWidget(cpp14::make_unique<WContainerWidget>());
-        percentBar->setPositionScheme(PositionScheme::Absolute);
-        percentBar->setOffsets(0,Side::Top|Side::Left|Side::Bottom);
-        percentBar->setContentAlignment(AlignmentFlag::Center);
-        auto percentText = percentBar->addWidget(cpp14::make_unique<WText>(WString("Cevaplanan {1}").arg(mExistList.size())));
+    auto percentBar = barContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+    percentBar->setPositionScheme(PositionScheme::Absolute);
+    percentBar->setOffsets(0,Side::Top|Side::Left|Side::Bottom);
+    percentBar->setContentAlignment(AlignmentFlag::Center);
+    auto percentText = percentBar->addWidget(cpp14::make_unique<WText>(WString("Cevaplanan {1}").arg(mExistList.size())));
 
-        LOG << "Exist List Size: " << mExistList.size() << "\n";
-        double percent = static_cast<double>(mExistList.size()) / 25.0 * 100.0;
-        percentBar->setWidth(WLength(std::to_string(percent)+"%"));
-        percentBar->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::Chartreuse));
-
-
-
-        auto bekleyenBar = barContainer->addWidget(cpp14::make_unique<WContainerWidget>());
-        bekleyenBar->setPositionScheme(PositionScheme::Absolute);
-        bekleyenBar->setOffsets(0,Side::Top|Side::Right|Side::Bottom);
-        bekleyenBar->setContentAlignment(AlignmentFlag::Center);
-        bekleyenBar->addWidget(cpp14::make_unique<WText>(WString("Bekleyen {1}").arg(25.0-mExistList.size())));
-        bekleyenBar->setWidth(WLength(std::to_string(100-percent)+"%"));
-        bekleyenBar->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::LightCoral));
+//    LOG << "Exist List Size: " << mExistList.size() << "\n";
+    double percent = static_cast<double>(mExistList.size()) / 25.0 * 100.0;
+    percentBar->setWidth(WLength(std::to_string(percent)+"%"));
+    percentBar->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::Chartreuse));
 
 
-        auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
-        container->addStyleClass(Bootstrap::Grid::col_full_12);
 
-        auto hLayout = container->setLayout(cpp14::make_unique<WHBoxLayout>());
-        auto text_baslangic = hLayout->addWidget(cpp14::make_unique<WText>("Başlangıç: "+QDateTime::fromSecsSinceEpoch(mBaslangicTime).time().toString("hh:mm:ss").toStdString()));
-        hLayout->addStretch(1);
-        auto text_suan = hLayout->addWidget(cpp14::make_unique<WText>("Şuan: "+QDateTime::currentDateTime().time().toString("hh:mm:ss").toStdString()));
-        hLayout->addStretch(1);
-        auto text_bitis = hLayout->addWidget(cpp14::make_unique<WText>("Bitiş: "+QDateTime::fromSecsSinceEpoch(mBaslangicTime+1800).time().toString("hh:mm:ss").toStdString()));
+    auto bekleyenBar = barContainer->addWidget(cpp14::make_unique<WContainerWidget>());
+    bekleyenBar->setPositionScheme(PositionScheme::Absolute);
+    bekleyenBar->setOffsets(0,Side::Top|Side::Right|Side::Bottom);
+    bekleyenBar->setContentAlignment(AlignmentFlag::Center);
+    bekleyenBar->addWidget(cpp14::make_unique<WText>(WString("Bekleyen {1}").arg(25.0-mExistList.size())));
+    bekleyenBar->setWidth(WLength(std::to_string(100-percent)+"%"));
+    bekleyenBar->setAttributeValue(Style::style,Style::background::color::color(Style::color::Red::LightCoral));
+
+
+    auto container = this->Header()->addWidget(cpp14::make_unique<WContainerWidget>());
+    container->addStyleClass(Bootstrap::Grid::col_full_12);
+    container->setOverflow(Overflow::Hidden);
+
+    auto hLayout = container->setLayout(cpp14::make_unique<WHBoxLayout>());
+    auto text_baslangic = hLayout->addWidget(cpp14::make_unique<WText>("Başlangıç: "+QDateTime::fromSecsSinceEpoch(mBaslangicTime).time().toString("hh:mm:ss").toStdString()));
+    hLayout->addStretch(1);
+    auto text_suan = hLayout->addWidget(cpp14::make_unique<WText>("Şuan: "+QDateTime::currentDateTime().time().toString("hh:mm:ss").toStdString()));
+    hLayout->addStretch(1);
+    auto text_bitis = hLayout->addWidget(cpp14::make_unique<WText>("Bitiş: "+QDateTime::fromSecsSinceEpoch(mBaslangicTime+1800).time().toString("hh:mm:ss").toStdString()));
 
 
     this->Content()->clear();
@@ -515,7 +595,7 @@ void SinavSorusuWidget::ShowSoru(const int &index)
 
 
     for( const auto &cvp : cvpList ){
-        auto cvpText = this->Content()->addWidget(cpp14::make_unique<WText>(std::to_string(cvp.index)+ " " +pList.back()+") "+cvp.Cevap));
+        auto cvpText = this->Content()->addWidget(cpp14::make_unique<WText>(pList.back()+") "+cvp.Cevap));
         cvpText->addStyleClass(Bootstrap::Grid::col_full_12);
         cvpText->setTextAlignment(AlignmentFlag::Left);
         cvpText->setInline(false);
@@ -541,6 +621,7 @@ void SinavSorusuWidget::ShowSoru(const int &index)
 
 
     auto nextBTN = this->Footer()->addWidget(cpp14::make_unique<WPushButton>("İleri"));
+    nextBTN->addStyleClass(Bootstrap::Button::Primary);
     nextBTN->clicked().connect([=](){
 
         if( this->cevapIndex < 1 || this->cevapIndex > 8 || this->soruOid.empty() ){
@@ -564,7 +645,7 @@ void SinavSorusuWidget::ShowSoru(const int &index)
                     container->setHeight(150);
                     container->addStyleClass(Bootstrap::Grid::col_full_12+Bootstrap::ContextualBackGround::bg_success);
 
-//                    container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::DarkSeaGreen)+Style::color::color(Style::color::White::AliceBlue)+Style::font::size::s14px);
+                    //                    container->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::DarkSeaGreen)+Style::color::color(Style::color::White::AliceBlue)+Style::font::size::s14px);
                     auto vLayout = container->setLayout(cpp14::make_unique<WVBoxLayout>());
 
                     vLayout->addStretch(1);
@@ -591,6 +672,7 @@ void SinavSorusuWidget::ShowSoru(const int &index)
                     percentBar_->addWidget(cpp14::make_unique<WText>(WString("Soruların Tamamını Cevapladınız")));
                     percentBar_->setWidth(WLength("100%"));
                     percentBar_->setAttributeValue(Style::style,Style::background::color::color(Style::color::Green::Chartreuse));
+                    this->Footer()->removeWidget(finishSinavBtn);
 
 
                 });

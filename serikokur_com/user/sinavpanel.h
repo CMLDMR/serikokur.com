@@ -8,6 +8,25 @@
 #include <algorithm>
 
 
+
+struct SiralamaItem{
+    std::string soruOid;
+    int sorulmaSayisi;
+
+    friend bool operator<(const SiralamaItem &other1 , const SiralamaItem &other2){
+        return (other1.sorulmaSayisi < other2.sorulmaSayisi);
+    }
+
+    friend bool operator>(const SiralamaItem &other1 , const SiralamaItem &other2){
+        return (other1.sorulmaSayisi > other2.sorulmaSayisi);
+    }
+
+    friend bool operator==(const SiralamaItem &other1 , const SiralamaItem &other2){
+        return (other1.soruOid == other2.soruOid);
+    }
+};
+
+
 class SinavSorusuWidget : public ContainerWidget
 {
 public:
@@ -52,6 +71,9 @@ public:
 
 
     void initSoruList();
+
+    std::vector<std::string> PrepareSoruList();
+    std::vector<std::string> PrepareSoruPerBook( const std::string &bookName,QVector<std::string> sorulmusList,std::vector<std::string> &sorulacakList);
 
 
     const std::string &tCNO() const;
